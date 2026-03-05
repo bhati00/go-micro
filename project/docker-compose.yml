@@ -7,4 +7,4 @@ services:
       - "8080-8082:8080"
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
