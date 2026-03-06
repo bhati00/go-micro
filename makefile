@@ -3,17 +3,28 @@ FRONT_END_BINARY=frontApp
 BROKER_BINARY=brokerApp
 AUTH_BINARY=authApp
 COMPOSE_FILE=project/docker-compose.yml
-COMPOSE=docker compose -f ${COMPOSE_FILE}
+DOCKER_COMPOSE=$(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; elif docker-compose version >/dev/null 2>&1; then echo "docker-compose"; else echo "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${CURDIR}:${CURDIR} -w ${CURDIR} docker/compose:1.29.2"; fi)
+COMPOSE=${DOCKER_COMPOSE} -f ${COMPOSE_FILE}
+
+## check_compose: verifies an available docker compose command
+check_compose:
+	@if ! docker info >/dev/null 2>&1; then \
+		echo "Docker daemon is not reachable."; \
+		echo "Start Docker and retry."; \
+		exit 1; \
+	fi
 
 ## up: starts all containers in the background without forcing build
 up:
 	@echo "Starting Docker images..."
+	@${MAKE} check_compose
 	${COMPOSE} up -d
 	@echo "Docker images started!"
 
 ## up_build: stops docker-compose (if running), builds all projects and starts docker compose
 up_build: build_broker build_auth
 	@echo "Stopping docker images (if running...)"
+	@${MAKE} check_compose
 	${COMPOSE} down
 	@echo "Building (when required) and starting docker images..."
 	${COMPOSE} up --build -d
@@ -22,6 +33,7 @@ up_build: build_broker build_auth
 ## down: stop docker compose
 down:
 	@echo "Stopping docker compose..."
+	@${MAKE} check_compose
 	${COMPOSE} down
 	@echo "Done!"
 
