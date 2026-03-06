@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 FRONT_END_BINARY=frontApp
+FRONT_END_PORT?=8083
 BROKER_BINARY=brokerApp
 AUTH_BINARY=authApp
 COMPOSE_FILE=project/docker-compose.yml
@@ -57,8 +58,8 @@ build_front:
 
 ## start: starts the front end
 start: build_front
-	@echo "Starting front end"
-	cd front-end && ./${FRONT_END_BINARY} &
+	@echo "Starting front end on port ${FRONT_END_PORT}"
+	cd front-end && PORT=${FRONT_END_PORT} ./${FRONT_END_BINARY} &
 
 ## stop: stop the front end
 stop:

@@ -8,10 +8,12 @@ services:
       dockerfile: ./../broker-service/broker-service.dockerfile
     restart: always
     ports:
-      - "8080:80"
+      - "8080:8080"
     deploy:
       mode: replicated
       replicas: 1
+    networks:
+      - micro-net
 
   authentication-service:
     build:
@@ -25,6 +27,8 @@ services:
       replicas: 1
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+    networks:
+      - micro-net
 
 
   postgres:
@@ -41,3 +45,12 @@ services:
       POSTGRES_DB: users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
+    networks:
+      - micro-net
+
+networks:
+  micro-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 198.19.0.0/24
