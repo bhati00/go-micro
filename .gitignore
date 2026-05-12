@@ -1,0 +1,9 @@
+authentication-service/authApp
+broker-service/brokerApp
+front-end/frontApp
+logger-service/loggerServiceApp
+
+*.pid
+*.log
+
+project/db-data/
