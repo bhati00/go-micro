@@ -7,13 +7,15 @@ FRONTEND_DIR := $(ROOT_DIR)/front-end
 BROKER_DIR := $(ROOT_DIR)/broker-service
 AUTH_DIR := $(ROOT_DIR)/authentication-service
 LOGGER_DIR := $(ROOT_DIR)/logger-service
+MAILER_DIR := $(ROOT_DIR)/mail-service
 
 FRONT_END_BINARY := frontApp
 BROKER_BINARY := brokerApp
 AUTH_BINARY := authApp
 LOGGER_BINARY := loggerServiceApp
+MAILER_BINARY := mailerApp
 
-.PHONY: up up_build down build_broker build_auth build_logger build_front start stop
+.PHONY: up up_build down build_broker build_auth build_logger build_front build_mailer start stop
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -22,7 +24,7 @@ up:
 > @echo "Docker images started!"
 
 ## up_build: builds all service binaries and starts docker compose
-up_build: build_broker build_auth build_logger
+up_build: build_broker build_auth build_logger build_mailer
 > @echo "Stopping docker images (if running)..."
 > cd "$(PROJECT_DIR)" && docker-compose down
 > @echo "Building (when required) and starting docker images..."
@@ -51,6 +53,12 @@ build_logger:
 build_auth:
 > @echo "Building auth binary..."
 > cd "$(AUTH_DIR)" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$(AUTH_BINARY)" ./cmd/api
+> @echo "Done!"
+
+## build_mailer: builds mailer binary as linux executable
+build_mailer:
+> @echo "Building mailer binary..."
+> cd "$(MAILER_DIR)" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$(MAILER_BINARY)" ./cmd/api
 > @echo "Done!"
 
 ## build_front: builds front end binary for linux
