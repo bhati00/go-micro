@@ -14,27 +14,36 @@ BROKER_BINARY := brokerApp
 AUTH_BINARY := authApp
 LOGGER_BINARY := loggerServiceApp
 MAILER_BINARY := mailerApp
+LISTENER_BINARY := listenerApp
 
 .PHONY: up up_build down build_broker build_auth build_logger build_front build_mailer start stop
 
+COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo ""; fi)
+
+check_compose:
+> @if [ -z "$(COMPOSE)" ]; then \
+> 	echo "Error: neither 'docker compose' nor 'docker-compose' is available."; \
+> 	exit 1; \
+> fi
+
 ## up: starts all containers in the background without forcing build
-up:
+up: check_compose
 > @echo "Starting Docker images..."
-> cd "$(PROJECT_DIR)" && docker-compose up -d
+> cd "$(PROJECT_DIR)" && $(COMPOSE) up -d --remove-orphans
 > @echo "Docker images started!"
 
 ## up_build: builds all service binaries and starts docker compose
-up_build: build_broker build_auth build_logger build_mailer
+up_build: check_compose build_broker build_auth build_logger build_mailer build_listener build_front
 > @echo "Stopping docker images (if running)..."
-> cd "$(PROJECT_DIR)" && docker-compose down
+> cd "$(PROJECT_DIR)" && $(COMPOSE) down --remove-orphans
 > @echo "Building (when required) and starting docker images..."
-> cd "$(PROJECT_DIR)" && docker-compose up --build -d
+> cd "$(PROJECT_DIR)" && $(COMPOSE) up --build -d --remove-orphans
 > @echo "Docker images built and started!"
 
 ## down: stop docker compose
-down:
+down: check_compose
 > @echo "Stopping docker compose..."
-> cd "$(PROJECT_DIR)" && docker-compose down
+> cd "$(PROJECT_DIR)" && $(COMPOSE) down --remove-orphans
 > @echo "Done!"
 
 ## build_broker: builds broker binary as linux executable
@@ -60,6 +69,12 @@ build_mailer:
 > @echo "Building mailer binary..."
 > cd "$(MAILER_DIR)" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$(MAILER_BINARY)" ./cmd/api
 > @echo "Done!"
+
+## build_listener: builds listener binary as linux executable
+build_listener:
+> @echo "Building listener binary..."
+> cd "$(ROOT_DIR)/listener-service" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "listenerApp" .
+> @echo "Done!"	
 
 ## build_front: builds front end binary for linux
 build_front:
